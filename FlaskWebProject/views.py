@@ -118,14 +118,7 @@ def logout():
 
 def _load_cache():
     """Load the MSAL token cache from the Flask session (if available)."""
-    cache = msal.SerializableTokenCache()
-    serialized = session.get("token_cache")
-    if serialized:
-        try:
-            cache.deserialize(serialized)
-        except Exception:
-            # If corrupted or incompatible, start fresh
-            cache = msal.SerializableTokenCache()
+    cache = None
     return cache
 
 
