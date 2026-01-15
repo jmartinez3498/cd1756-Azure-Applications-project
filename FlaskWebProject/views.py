@@ -20,11 +20,22 @@ imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.n
 @login_required
 def home():
     user = User.query.filter_by(username=current_user.username).first_or_404()
+    log = request.values.get("log_button")
+    if log:
+        if log == 'info':
+            app.logger.info('No issue.')
+        elif log == 'warning':
+            app.logger.warning('Warning occurred.')
+        elif log == 'error':
+            app.logger.error('Error occurred.')
+        elif log == 'critical':
+            app.logger.critical('Critical error occurred.')
     posts = Post.query.all()
     return render_template(
         'index.html',
         title='Home Page',
-        posts=posts
+        posts=posts,
+        log=log
     )
 
 @app.route('/new_post', methods=['GET', 'POST'])
@@ -118,7 +129,14 @@ def logout():
 
 def _load_cache():
     """Load the MSAL token cache from the Flask session (if available)."""
-    cache = None
+    cache = msal.SerializableTokenCache()
+    serialized = session.get("token_cache")
+    if serialized:
+        try:
+            cache.deserialize(serialized)
+        except Exception:
+            # If corrupted or incompatible, start fresh
+            cache = msal.SerializableTokenCache()
     return cache
 
 
